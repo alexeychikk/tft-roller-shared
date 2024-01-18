@@ -1,4 +1,4 @@
-import { sortedIndexBy } from 'lodash-es';
+import { sortedIndexBy } from 'remeda';
 import { CHAMPIONS } from './champions';
 import { Champion } from '../types';
 

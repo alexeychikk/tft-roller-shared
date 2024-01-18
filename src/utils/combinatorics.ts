@@ -1,4 +1,4 @@
-import { times } from 'lodash-es';
+import { times } from 'remeda';
 
 /**
  * (n = 6, k = 4) => 15

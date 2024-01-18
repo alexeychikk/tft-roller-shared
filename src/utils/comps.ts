@@ -1,4 +1,4 @@
-import { forEach, sortBy } from 'lodash-es';
+import { forEachObj, sortBy } from 'remeda';
 
 import { CompStats } from '../types';
 import { ALL_TRAITS_MAP, CHAMPIONS_MAP } from '../constants';
@@ -17,14 +17,14 @@ export function getCompStats(champions: string[]): CompStats[] {
     }
   }
 
-  forEach(res, (stats) => {
+  forEachObj(res, (stats) => {
     stats.activationLevel = getActivationLevel(
       stats.trait,
       stats.champions.length,
     );
   });
 
-  return sortBy(res, ({ trait, champions, activationLevel }) => {
+  return sortBy(Object.values(res), ({ trait, champions, activationLevel }) => {
     return `${9 - activationLevel};${99 - champions.length};${trait}`;
   });
 }
