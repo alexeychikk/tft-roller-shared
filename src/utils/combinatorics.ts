@@ -1,4 +1,4 @@
-import { times } from 'lodash-es';
+import { list } from 'radash';
 
 /**
  * (n = 6, k = 4) => 15
@@ -24,7 +24,7 @@ export function traverseUniqueCombinations<T>(
     return;
   }
 
-  const indexes = times(k, (i) => i);
+  const indexes = list(k - 1);
   let iteration = 0;
 
   for (;;) {

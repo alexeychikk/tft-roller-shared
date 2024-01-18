@@ -1,30 +1,31 @@
-import { forEach, sortBy } from 'lodash-es';
+import { alphabetical } from 'radash';
 
 import { CompStats } from '../types';
 import { ALL_TRAITS_MAP, CHAMPIONS_MAP } from '../constants';
 
 export function getCompStats(champions: string[]): CompStats[] {
-  const res: Record<string, CompStats> = {};
+  const statsByTrait: Record<string, CompStats> = {};
 
   for (const name of new Set(champions)) {
     for (const trait of CHAMPIONS_MAP[name].classTraits) {
-      res[trait] ??= { trait, champions: [], activationLevel: 0 };
-      res[trait].champions.push(name);
+      statsByTrait[trait] ??= { trait, champions: [], activationLevel: 0 };
+      statsByTrait[trait].champions.push(name);
     }
     for (const trait of CHAMPIONS_MAP[name].originTraits) {
-      res[trait] ??= { trait, champions: [], activationLevel: 0 };
-      res[trait].champions.push(name);
+      statsByTrait[trait] ??= { trait, champions: [], activationLevel: 0 };
+      statsByTrait[trait].champions.push(name);
     }
   }
 
-  forEach(res, (stats) => {
+  const compStats = Object.values(statsByTrait);
+  compStats.forEach((stats) => {
     stats.activationLevel = getActivationLevel(
       stats.trait,
       stats.champions.length,
     );
   });
 
-  return sortBy(res, ({ trait, champions, activationLevel }) => {
+  return alphabetical(compStats, ({ trait, champions, activationLevel }) => {
     return `${9 - activationLevel};${99 - champions.length};${trait}`;
   });
 }
