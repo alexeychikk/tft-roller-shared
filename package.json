@@ -20,5 +20,8 @@
   "peerDependencies": {
     "@colyseus/schema": "^2.0.26",
     "remeda": "^1.37.0"
+  },
+  "dependencies": {
+    "reflect-metadata": "^0.2.1"
   }
 }

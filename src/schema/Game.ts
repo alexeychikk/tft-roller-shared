@@ -1,5 +1,5 @@
 import { mapValues, pickBy, sumBy, times } from 'remeda';
-import { MapSchema, type } from '@colyseus/schema';
+import { MapSchema, Schema, type } from '@colyseus/schema';
 
 import {
   CHAMPIONS_MAP,
@@ -8,13 +8,13 @@ import {
   GOLD_PER_EXPERIENCE_BUY,
   GOLD_PER_REROLL,
 } from '../constants';
+import { weightedRandom } from '../utils';
 
 import { Unit } from './Unit';
 import { UnitContext } from './UnitsGrid';
 import { Player } from './Player';
-import { weightedRandom } from '../utils';
 
-export class Game {
+export class Game extends Schema {
   @type({ map: Player }) players = new MapSchema<Player>();
   @type({ map: 'number' }) shopChampionPool = new MapSchema<number>(
     CHAMPIONS_POOL,
@@ -105,7 +105,7 @@ export class Game {
   sellUnit(sessionId: string, { coords, gridType }: UnitContext) {
     const player = this.players.get(sessionId);
     if (!player) return;
-    const unit = player[gridType].getUnit(coords);
+    const unit = player[gridType]?.getUnit(coords);
     if (!unit) return;
     player[gridType].setUnit(coords, undefined);
     this.addToChampionPool(unit.name, 1);
@@ -118,6 +118,8 @@ export class Game {
 
     const sourceGrid = player[source.gridType];
     const destGrid = player[dest.gridType];
+    if (!sourceGrid || !destGrid) return;
+
     const unitFrom = sourceGrid.getUnit(source.coords);
     const unitTo = destGrid.getUnit(dest.coords);
 

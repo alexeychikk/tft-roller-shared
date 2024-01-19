@@ -1,4 +1,4 @@
-import { ArraySchema, Schema, type } from '@colyseus/schema';
+import { MapSchema, Schema, type } from '@colyseus/schema';
 
 import { Unit } from './Unit';
 
@@ -16,20 +16,9 @@ export class UnitsGrid extends Schema {
   @type('number') readonly height: number;
 
   /**
-   * 1D representation of the grid
+   * 1D representation of the grid as map
    */
-  @type([Unit]) protected slots: ArraySchema<Unit>;
-
-  constructor(options: {
-    width: number;
-    height: number;
-    slots?: ArraySchema<Unit>;
-  }) {
-    super();
-    this.width = options.width;
-    this.height = options.height;
-    this.slots = options.slots ?? new ArraySchema<Unit>();
-  }
+  @type({ map: Unit }) protected slots = new MapSchema<Unit>();
 
   get size(): number {
     return (this.width * this.height) | 0;
@@ -42,27 +31,27 @@ export class UnitsGrid extends Schema {
   get units(): Unit[] {
     const res: Unit[] = [];
     for (let i = 0; i < this.size; i++) {
-      if (this.slots[i] !== undefined) res.push(this.slots[i]!);
+      if (this.slots.has(`${i}`)) res.push(this.slots.get(`${i}`)!);
     }
     return res;
   }
 
   get firstEmptySlot(): Coords | undefined {
     for (let i = 0; i < this.size; i++) {
-      if (this.slots[i] === undefined)
+      if (!this.slots.has(`${i}`))
         return { x: i % this.width, y: (i / this.width) | 0 };
     }
   }
 
   getUnit(coords: Coords): Unit | undefined {
-    return this.slots[(coords.x + this.width * coords.y) | 0];
+    return this.slots.get(`${(coords.x + this.width * coords.y) | 0}`);
   }
 
   setUnit(coords: Coords, unit: Unit | undefined): UnitsGrid {
-    if (unit) {
-      this.slots.setAt((coords.x + this.width * coords.y) | 0, unit);
+    if (!unit) {
+      this.slots.delete(`${(coords.x + this.width * coords.y) | 0}`);
     } else {
-      this.slots.deleteAt((coords.x + this.width * coords.y) | 0);
+      this.slots.set(`${(coords.x + this.width * coords.y) | 0}`, unit);
     }
     return this;
   }
@@ -119,7 +108,7 @@ export class UnitsGrid extends Schema {
 
   clear() {
     for (let i = 0; i < this.size; i++) {
-      this.slots.deleteAt(i);
+      this.slots.delete(`${i}`);
     }
   }
 }
