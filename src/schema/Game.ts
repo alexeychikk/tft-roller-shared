@@ -25,7 +25,7 @@ export class Game extends Schema {
   shopChampionPool = new MapSchema<number>(CHAMPIONS_POOL);
 
   createPlayer(sessionId: string) {
-    const player = new Player(sessionId);
+    const player = new Player({ sessionId });
     this.players.set(sessionId, player);
     this.rerollShop(sessionId);
     return player;
