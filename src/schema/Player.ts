@@ -1,5 +1,5 @@
 import { times } from 'remeda';
-import { ArraySchema, Schema, type } from '@colyseus/schema';
+import { ArraySchema, Schema, filter, type } from '@colyseus/schema';
 
 import {
   SHOP_SIZE,
@@ -10,15 +10,23 @@ import {
   MIN_LEVEL,
   REROLL_CHANCES,
 } from '../constants';
+import { GenericClient } from '../types';
+
 import { GridType, UnitContext, UnitsGrid } from './UnitsGrid';
 
 export class Player extends Schema {
   @type('string') sessionId: string;
+  @type('boolean') isAdmin: boolean = false;
+
   @type('number') gold = 300;
   @type('number') experience = 0;
-  @type(['string']) shopChampionNames = new ArraySchema<string>(
-    ...times(SHOP_SIZE, () => ''),
-  );
+
+  @filter(function (this: Player, client: GenericClient) {
+    return this.sessionId === client.sessionId;
+  })
+  @type(['string'])
+  shopChampionNames = new ArraySchema<string>(...times(SHOP_SIZE, () => ''));
+
   @type(UnitsGrid) bench = new UnitsGrid({ height: 1, width: 9 });
   @type(UnitsGrid) table = new UnitsGrid({ height: 4, width: 7 });
 

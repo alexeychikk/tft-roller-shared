@@ -1,5 +1,5 @@
 import { mapValues, pickBy, sumBy, times } from 'remeda';
-import { MapSchema, Schema, type } from '@colyseus/schema';
+import { MapSchema, Schema, filter, type } from '@colyseus/schema';
 
 import {
   CHAMPIONS_MAP,
@@ -9,6 +9,7 @@ import {
   GOLD_PER_REROLL,
 } from '../constants';
 import { weightedRandom } from '../utils';
+import { GenericClient } from '../types';
 
 import { Unit } from './Unit';
 import { UnitContext } from './UnitsGrid';
@@ -16,9 +17,12 @@ import { Player } from './Player';
 
 export class Game extends Schema {
   @type({ map: Player }) players = new MapSchema<Player>();
-  @type({ map: 'number' }) shopChampionPool = new MapSchema<number>(
-    CHAMPIONS_POOL,
-  );
+
+  @filter(function (this: Game, client: GenericClient) {
+    return !!this.players.get(client.sessionId)?.isAdmin;
+  })
+  @type({ map: 'number' })
+  shopChampionPool = new MapSchema<number>(CHAMPIONS_POOL);
 
   createPlayer(sessionId: string) {
     const player = new Player(sessionId);
