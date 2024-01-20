@@ -1,4 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export interface GenericClient<UserData = any, AuthData = any> {
   readyState: number;
   id: string;

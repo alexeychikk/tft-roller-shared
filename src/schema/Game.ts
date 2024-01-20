@@ -3,29 +3,49 @@ import { MapSchema, Schema, filter, type } from '@colyseus/schema';
 
 import {
   CHAMPIONS_MAP,
-  CHAMPIONS_POOL,
   EXPERIENCE_PER_BUY,
   GOLD_PER_EXPERIENCE_BUY,
   GOLD_PER_REROLL,
+  SHOP_SIZE,
 } from '../constants';
 import { weightedRandom } from '../utils';
 import { GenericClient } from '../types';
 
-import { Unit } from './Unit';
-import { UnitContext } from './UnitsGrid';
-import { Player } from './Player';
+import { UnitSchema } from './Unit';
+import { UnitContext, UnitsGridSchema } from './UnitsGrid';
+import { Player, PlayerSchema } from './Player';
 
 export class Game extends Schema {
-  @type({ map: Player }) players = new MapSchema<Player>();
+  players: Map<string, Player> | MapSchema<PlayerSchema>;
+  shopChampionPool: Map<string, number> | MapSchema<number>;
+}
 
-  @filter(function (this: Game, client: GenericClient) {
+export class GameSchema extends Game {
+  @type({ map: PlayerSchema }) players: MapSchema<PlayerSchema>;
+
+  @filter(function (this: GameSchema, client: GenericClient) {
     return !!this.players.get(client.sessionId)?.isAdmin;
   })
   @type({ map: 'number' })
-  shopChampionPool = new MapSchema<number>(CHAMPIONS_POOL);
+  shopChampionPool: MapSchema<number>;
 
   createPlayer(sessionId: string) {
-    const player = new Player({ sessionId });
+    const player = new PlayerSchema({
+      sessionId,
+      gold: 300,
+      experience: 0,
+      shopChampionNames: times(SHOP_SIZE, () => ''),
+      bench: new UnitsGridSchema({
+        height: 1,
+        width: 9,
+        slots: new Map(),
+      }),
+      table: new UnitsGridSchema({
+        height: 4,
+        width: 7,
+        slots: new Map(),
+      }),
+    });
     this.players.set(sessionId, player);
     this.rerollShop(sessionId);
     return player;
@@ -100,7 +120,7 @@ export class Game extends Schema {
     player.shopChampionNames[index] = '';
     player.bench.setUnit(
       player.bench.firstEmptySlot,
-      new Unit({ name: championName, stars: 1 }),
+      new UnitSchema({ name: championName, stars: 1 }),
     );
     player.gold -= champion.tier;
     this.mergeUnits(sessionId, { championName });
@@ -175,7 +195,7 @@ export class Game extends Schema {
         if (probability <= 0) return result;
 
         const tier = index + 1;
-        const poolRecord = Array.from(this.shopChampionPool.entries()).reduce(
+        const poolRecord = Array.from(this.shopChampionPool).reduce(
           (acc, [name, amount]) =>
             Object.assign(acc, {
               [name]: amount,
