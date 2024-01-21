@@ -1,7 +1,7 @@
 import { forEachObj, sortBy } from 'remeda';
 
-import { CompStats } from '../types';
 import { ALL_TRAITS_MAP, CHAMPIONS_MAP } from '../constants';
+import type { CompStats } from '../types';
 
 export function getCompStats(champions: string[]): CompStats[] {
   const res: Record<string, CompStats> = {};

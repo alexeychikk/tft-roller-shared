@@ -1,6 +1,8 @@
 import { sortedIndexBy } from 'remeda';
+
+import type { Champion } from '../types';
+
 import { CHAMPIONS } from './champions';
-import { Champion } from '../types';
 
 export const TRAIT_TO_CHAMPIONS_MAP = (() => {
   const res: Record<string, Champion[]> = {};

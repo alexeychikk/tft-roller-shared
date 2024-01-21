@@ -1,4 +1,5 @@
 import { Schema, type } from '@colyseus/schema';
+
 import { CHAMPIONS_MAP } from '../constants';
 
 export class Unit extends Schema {

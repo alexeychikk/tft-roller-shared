@@ -1,4 +1,5 @@
-import { ArraySchema, Schema, filter, type } from '@colyseus/schema';
+import type { ArraySchema } from '@colyseus/schema';
+import { Schema, filter, type } from '@colyseus/schema';
 
 import {
   GOLD_PER_EXPERIENCE_BUY,
@@ -8,9 +9,10 @@ import {
   MIN_LEVEL,
   REROLL_CHANCES,
 } from '../constants';
-import { GenericClient } from '../types';
+import type { GenericClient } from '../types';
 
-import { GridType, UnitContext, UnitsGrid, UnitsGridSchema } from './UnitsGrid';
+import type { UnitContext, UnitsGrid } from './UnitsGrid';
+import { GridType, UnitsGridSchema } from './UnitsGrid';
 
 export class Player extends Schema {
   sessionId: string;

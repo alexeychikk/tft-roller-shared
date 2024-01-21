@@ -1,4 +1,4 @@
-import { Champion } from '../types';
+import type { Champion } from '../types';
 
 export const CHAMPIONS: Champion[] = [
   {
@@ -357,10 +357,13 @@ export const CHAMPIONS: Champion[] = [
   },
 ];
 
-export const CHAMPIONS_MAP = CHAMPIONS.reduce((result, champ) => {
-  result[champ.name] = champ;
-  return result;
-}, {} as Record<string, Champion>);
+export const CHAMPIONS_MAP = CHAMPIONS.reduce(
+  (result, champ) => {
+    result[champ.name] = champ;
+    return result;
+  },
+  {} as Record<string, Champion>,
+);
 
 export const TIERS_POOL_SIZE: Record<number, number> = {
   1: 29,
@@ -370,7 +373,10 @@ export const TIERS_POOL_SIZE: Record<number, number> = {
   5: 10,
 };
 
-export const CHAMPIONS_POOL = CHAMPIONS.reduce((result, champ) => {
-  result[champ.name] = TIERS_POOL_SIZE[champ.tier];
-  return result;
-}, {} as Record<string, number>);
+export const CHAMPIONS_POOL = CHAMPIONS.reduce(
+  (result, champ) => {
+    result[champ.name] = TIERS_POOL_SIZE[champ.tier];
+    return result;
+  },
+  {} as Record<string, number>,
+);

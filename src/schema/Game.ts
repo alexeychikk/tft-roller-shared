@@ -1,5 +1,6 @@
+import type { MapSchema } from '@colyseus/schema';
+import { Schema, filter, type } from '@colyseus/schema';
 import { mapValues, pickBy, sumBy, times } from 'remeda';
-import { MapSchema, Schema, filter, type } from '@colyseus/schema';
 
 import {
   CHAMPIONS_MAP,
@@ -8,12 +9,14 @@ import {
   GOLD_PER_REROLL,
   SHOP_SIZE,
 } from '../constants';
+import type { GenericClient } from '../types';
 import { weightedRandom } from '../utils';
-import { GenericClient } from '../types';
 
+import type { Player } from './Player';
+import { PlayerSchema } from './Player';
 import { UnitSchema } from './Unit';
-import { UnitContext, UnitsGridSchema } from './UnitsGrid';
-import { Player, PlayerSchema } from './Player';
+import type { UnitContext } from './UnitsGrid';
+import { UnitsGridSchema } from './UnitsGrid';
 
 export class Game extends Schema {
   players: Map<string, Player> | MapSchema<PlayerSchema>;

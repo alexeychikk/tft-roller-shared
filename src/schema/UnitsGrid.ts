@@ -1,6 +1,8 @@
-import { MapSchema, Schema, type } from '@colyseus/schema';
+import type { MapSchema } from '@colyseus/schema';
+import { Schema, type } from '@colyseus/schema';
 
-import { Unit, UnitSchema } from './Unit';
+import type { Unit } from './Unit';
+import { UnitSchema } from './Unit';
 
 export type Coords = { x: number; y: number };
 

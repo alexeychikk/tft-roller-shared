@@ -1,4 +1,4 @@
-import { Trait } from '../types';
+import type { Trait } from '../types';
 
 export const ORIGIN_TRAITS: Trait[] = [
   {
@@ -120,7 +120,10 @@ export const CLASS_TRAITS: Trait[] = [
 
 export const ALL_TRAITS = ORIGIN_TRAITS.concat(CLASS_TRAITS);
 
-export const ALL_TRAITS_MAP = ALL_TRAITS.reduce((res, trait) => {
-  res[trait.name] = trait;
-  return res;
-}, {} as Record<string, Trait>);
+export const ALL_TRAITS_MAP = ALL_TRAITS.reduce(
+  (res, trait) => {
+    res[trait.name] = trait;
+    return res;
+  },
+  {} as Record<string, Trait>,
+);

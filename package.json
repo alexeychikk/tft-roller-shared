@@ -5,7 +5,8 @@
   "main": "build/index.js",
   "scripts": {
     "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "prettify": "npx prettier --write ."
+    "prettify": "npx prettier --write .",
+    "fix": "npm run lint -- --fix && npm run prettify"
   },
   "author": "",
   "license": "ISC",
@@ -14,8 +15,9 @@
     "@typescript-eslint/parser": "^6.19.0",
     "eslint": "^8.56.0",
     "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-import": "^2.29.1",
     "prettier": "^3.2.4",
-    "typescript": "^5.3.3",
+    "typescript": "~5.2.2",
     "utility-types": "^3.11.0"
   },
   "peerDependencies": {
