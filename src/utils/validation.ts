@@ -1,5 +1,11 @@
-import { plainToInstance, type ClassConstructor } from 'class-transformer';
-import { validateOrReject } from 'class-validator';
+import {
+  plainToInstance,
+  type ClassConstructor,
+  Transform,
+} from 'class-transformer';
+import { IsOptional, validateOrReject } from 'class-validator';
+
+import { composeDecorators } from './composeDecorators';
 
 export async function validate<T extends object>(
   classParam: ClassConstructor<T>,
@@ -9,3 +15,9 @@ export async function validate<T extends object>(
   await validateOrReject(instance, { whitelist: true });
   return instance;
 }
+
+export const IsOptionalString = () =>
+  composeDecorators(
+    IsOptional(),
+    Transform(({ value }) => (!value ? undefined : value)),
+  );

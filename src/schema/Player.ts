@@ -15,6 +15,7 @@ import type { UnitContext, UnitsGrid } from './UnitsGrid';
 import { GridType, UnitsGridSchema } from './UnitsGrid';
 
 export class Player extends Schema {
+  id: string;
   sessionId: string;
   isAdmin: boolean;
   gold: number;
@@ -78,6 +79,7 @@ export class Player extends Schema {
 }
 
 export class PlayerSchema extends Player {
+  @type('string') id: string;
   @type('string') sessionId: string;
   @type('number') gold: number;
   @type('number') experience: number;

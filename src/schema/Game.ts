@@ -20,7 +20,7 @@ import type { UnitContext } from './UnitsGrid';
 import { UnitsGridSchema } from './UnitsGrid';
 
 export class Game extends Schema {
-  ownerId: string;
+  ownerSessionId: string;
   status: GameStatus;
   players: Map<string, Player> | MapSchema<PlayerSchema>;
   shopChampionPool: Map<string, number> | MapSchema<number>;
@@ -28,7 +28,7 @@ export class Game extends Schema {
 
 export class GameSchema extends Game {
   @type('string')
-  ownerId: string;
+  ownerSessionId: string;
 
   @type('string')
   status: GameStatus;
@@ -42,9 +42,8 @@ export class GameSchema extends Game {
   @type({ map: 'number' })
   shopChampionPool: MapSchema<number>;
 
-  createPlayer(sessionId: string, options: SchemaOptions<Player> = {}) {
+  createPlayer(options: SchemaOptions<Player> = {}) {
     const player = new PlayerSchema({
-      sessionId,
       gold: 300,
       experience: 0,
       shopChampionNames: times(SHOP_SIZE, () => ''),
@@ -60,7 +59,7 @@ export class GameSchema extends Game {
       }),
       ...options,
     });
-    this.players.set(sessionId, player);
+    this.players.set(player.sessionId, player);
     return player;
   }
 
@@ -79,7 +78,7 @@ export class GameSchema extends Game {
     if (this.status !== GameStatus.InLobby) return;
     if (this.players.size < 2) return;
     const player = this.players.get(sessionId);
-    if (player?.sessionId !== this.ownerId) return;
+    if (player?.sessionId !== this.ownerSessionId) return;
     this.players.forEach((player) => this.rerollShop(player.sessionId));
     this.status = GameStatus.InProgress;
     return true;

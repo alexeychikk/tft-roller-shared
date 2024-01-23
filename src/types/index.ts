@@ -1,3 +1,4 @@
+export * from './auth';
 export * from './champions';
 export * from './colyseus';
 export * from './comps';
