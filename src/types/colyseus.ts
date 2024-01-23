@@ -1,3 +1,6 @@
+import type { Schema } from '@colyseus/schema';
+import type { NonFunctionKeys, PickByValue } from 'utility-types';
+
 export interface GenericClient<UserData = any, AuthData = any> {
   readyState: number;
   id: string;
@@ -20,3 +23,15 @@ export enum ClientState {
   RECONNECTED = 2,
   LEAVING = 3,
 }
+
+export enum ErrorCode {
+  BadRequest = 400,
+  Unauthorized = 401,
+  Forbidden = 403,
+  UnprocessableEntity = 422,
+  InternalServerError = 500,
+}
+
+export type SchemaOptions<T extends Schema> = Partial<
+  PickByValue<T, NonFunctionKeys<T>>
+>;

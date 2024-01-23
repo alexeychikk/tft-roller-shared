@@ -9,7 +9,8 @@ import {
   GOLD_PER_REROLL,
   SHOP_SIZE,
 } from '../constants';
-import type { GenericClient } from '../types';
+import type { GenericClient, SchemaOptions } from '../types';
+import { GameStatus } from '../types';
 import { weightedRandom } from '../utils';
 
 import type { Player } from './Player';
@@ -19,12 +20,21 @@ import type { UnitContext } from './UnitsGrid';
 import { UnitsGridSchema } from './UnitsGrid';
 
 export class Game extends Schema {
+  ownerId: string;
+  status: GameStatus;
   players: Map<string, Player> | MapSchema<PlayerSchema>;
   shopChampionPool: Map<string, number> | MapSchema<number>;
 }
 
 export class GameSchema extends Game {
-  @type({ map: PlayerSchema }) players: MapSchema<PlayerSchema>;
+  @type('string')
+  ownerId: string;
+
+  @type('string')
+  status: GameStatus;
+
+  @type({ map: PlayerSchema })
+  players: MapSchema<PlayerSchema>;
 
   @filter(function (this: GameSchema, client: GenericClient) {
     return !!this.players.get(client.sessionId)?.isAdmin;
@@ -32,7 +42,7 @@ export class GameSchema extends Game {
   @type({ map: 'number' })
   shopChampionPool: MapSchema<number>;
 
-  createPlayer(sessionId: string) {
+  createPlayer(sessionId: string, options: SchemaOptions<Player> = {}) {
     const player = new PlayerSchema({
       sessionId,
       gold: 300,
@@ -48,9 +58,9 @@ export class GameSchema extends Game {
         width: 7,
         slots: new Map(),
       }),
+      ...options,
     });
     this.players.set(sessionId, player);
-    this.rerollShop(sessionId);
     return player;
   }
 
@@ -64,7 +74,19 @@ export class GameSchema extends Game {
     this.players.delete(sessionId);
   }
 
+  // TODO: throw errors and handle them in GameRoom
+  start(sessionId: string) {
+    if (this.status !== GameStatus.InLobby) return;
+    if (this.players.size < 2) return;
+    const player = this.players.get(sessionId);
+    if (player?.sessionId !== this.ownerId) return;
+    this.players.forEach((player) => this.rerollShop(player.sessionId));
+    this.status = GameStatus.InProgress;
+    return true;
+  }
+
   buyExperience(sessionId: string) {
+    if (this.status !== GameStatus.InProgress) return;
     const player = this.players.get(sessionId);
     if (!player) return;
     if (!player.isEnoughGoldToBuyExperience) return;
@@ -74,6 +96,7 @@ export class GameSchema extends Game {
   }
 
   buyChampion(sessionId: string, index: number) {
+    if (this.status !== GameStatus.InProgress) return;
     const player = this.players.get(sessionId);
     if (!player) return;
     const championName = player.shopChampionNames[index];
@@ -130,6 +153,7 @@ export class GameSchema extends Game {
   }
 
   sellUnit(sessionId: string, { coords, gridType }: UnitContext) {
+    if (this.status !== GameStatus.InProgress) return;
     const player = this.players.get(sessionId);
     if (!player) return;
     const unit = player[gridType]?.getUnit(coords);
@@ -140,6 +164,7 @@ export class GameSchema extends Game {
   }
 
   moveUnit(sessionId: string, source: UnitContext, dest: UnitContext) {
+    if (this.status !== GameStatus.InProgress) return;
     const player = this.players.get(sessionId);
     if (!player?.canMoveUnit(source, dest)) return;
 
@@ -159,6 +184,7 @@ export class GameSchema extends Game {
   }
 
   reroll(sessionId: string) {
+    if (this.status !== GameStatus.InProgress) return;
     const player = this.players.get(sessionId);
     if (!player?.isEnoughGoldToReroll) return;
 

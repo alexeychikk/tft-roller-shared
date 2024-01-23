@@ -79,7 +79,6 @@ export class Player extends Schema {
 
 export class PlayerSchema extends Player {
   @type('string') sessionId: string;
-  @type('boolean') isAdmin: boolean;
   @type('number') gold: number;
   @type('number') experience: number;
 
