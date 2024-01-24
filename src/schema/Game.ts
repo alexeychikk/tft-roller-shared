@@ -9,7 +9,7 @@ import {
   GOLD_PER_REROLL,
   SHOP_SIZE,
 } from '../constants';
-import type { GenericClient, SchemaOptions } from '../types';
+import type { GenericClient, SchemaOptions, User } from '../types';
 import { GameStatus } from '../types';
 import { weightedRandom } from '../utils';
 
@@ -18,6 +18,7 @@ import { PlayerSchema } from './Player';
 import { UnitSchema } from './Unit';
 import type { UnitContext } from './UnitsGrid';
 import { UnitsGridSchema } from './UnitsGrid';
+import { UserSchema } from './User';
 
 export class Game extends Schema {
   ownerSessionId: string;
@@ -37,12 +38,12 @@ export class GameSchema extends Game {
   players: MapSchema<PlayerSchema>;
 
   @filter(function (this: GameSchema, client: GenericClient) {
-    return !!this.players.get(client.sessionId)?.isAdmin;
+    return !!this.players.get(client.sessionId)?.user.isAdmin;
   })
   @type({ map: 'number' })
   shopChampionPool: MapSchema<number>;
 
-  createPlayer(options: SchemaOptions<Player> = {}) {
+  createPlayer(user: User, options: SchemaOptions<Player> = {}) {
     const player = new PlayerSchema({
       gold: 300,
       experience: 0,
@@ -57,6 +58,7 @@ export class GameSchema extends Game {
         width: 7,
         slots: new Map(),
       }),
+      user: new UserSchema(user),
       ...options,
     });
     this.players.set(player.sessionId, player);

@@ -9,15 +9,15 @@ import {
   MIN_LEVEL,
   REROLL_CHANCES,
 } from '../constants';
-import type { GenericClient } from '../types';
+import type { GenericClient, User } from '../types';
 
 import type { UnitContext, UnitsGrid } from './UnitsGrid';
 import { GridType, UnitsGridSchema } from './UnitsGrid';
+import { UserSchema } from './User';
 
 export class Player extends Schema {
-  id: string;
+  user: User;
   sessionId: string;
-  isAdmin: boolean;
   gold: number;
   experience: number;
   shopChampionNames: string[] | ArraySchema<string>;
@@ -79,7 +79,7 @@ export class Player extends Schema {
 }
 
 export class PlayerSchema extends Player {
-  @type('string') id: string;
+  @type(UserSchema) user: UserSchema;
   @type('string') sessionId: string;
   @type('number') gold: number;
   @type('number') experience: number;
