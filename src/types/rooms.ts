@@ -10,12 +10,13 @@ export enum LobbyEventType {
 }
 
 export interface GameMeta {
-  name?: string;
+  name: string;
   ownerId: string;
+  protected: boolean;
 }
 
 export interface GameOptions {
-  name?: string;
+  name: string;
   password?: string;
   ownerId: string;
 }

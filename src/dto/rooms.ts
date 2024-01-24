@@ -1,4 +1,4 @@
-import { IsAlphanumeric, IsOptional, Length } from 'class-validator';
+import { IsAlphanumeric, Length } from 'class-validator';
 
 import { IsOptionalString } from '../utils';
 
@@ -19,10 +19,19 @@ export class CreateGameDto {
 
 export class JoinGameDto {
   @Length(1, 20)
-  @IsOptional()
+  @IsOptionalString()
   password?: string;
 
   constructor(data: Partial<JoinGameDto>) {
     Object.assign(this, data);
+  }
+}
+
+export class JoinGameRoomDto extends JoinGameDto {
+  @Length(1, 20)
+  roomId: string;
+
+  constructor(data: Partial<JoinGameRoomDto>) {
+    super(data);
   }
 }
