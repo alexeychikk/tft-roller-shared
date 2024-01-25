@@ -35,3 +35,16 @@ export enum ErrorCode {
 export type SchemaOptions<T extends Schema> = Partial<
   PickByValue<T, NonFunctionKeys<T>>
 >;
+
+export interface RoomListingData<Metadata = any> {
+  clients: number;
+  locked: boolean;
+  private: boolean;
+  maxClients: number;
+  metadata: Metadata;
+  name: string;
+  publicAddress?: string;
+  processId: string;
+  roomId: string;
+  unlisted: boolean;
+}
