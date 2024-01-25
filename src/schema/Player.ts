@@ -20,6 +20,7 @@ export class Player extends Schema {
   sessionId: string;
   gold: number;
   experience: number;
+  health: number;
   shopChampionNames: string[] | ArraySchema<string>;
   bench: UnitsGrid;
   table: UnitsGrid;
@@ -34,6 +35,10 @@ export class Player extends Schema {
 
   get isMaxLevelReached() {
     return this.experience >= EXPERIENCE_PER_LEVEL[MAX_LEVEL];
+  }
+
+  get isDead() {
+    return this.health <= 0;
   }
 
   get levelAbove() {
@@ -83,6 +88,7 @@ export class PlayerSchema extends Player {
   @type('string') sessionId: string;
   @type('number') gold: number;
   @type('number') experience: number;
+  @type('number') health: number;
 
   @filter(function (this: PlayerSchema, client: GenericClient) {
     return this.sessionId === client.sessionId;

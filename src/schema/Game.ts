@@ -1,16 +1,19 @@
+import type { Clock } from '@colyseus/core';
 import type { MapSchema } from '@colyseus/schema';
 import { Schema, filter, type } from '@colyseus/schema';
 import { mapValues, pickBy, sumBy, times } from 'remeda';
 
 import {
   CHAMPIONS_MAP,
+  CHAMPIONS_POOL,
   EXPERIENCE_PER_BUY,
   GOLD_PER_EXPERIENCE_BUY,
   GOLD_PER_REROLL,
   SHOP_SIZE,
+  TIME_PER_PHASE,
 } from '../constants';
 import type { GenericClient, SchemaOptions, User } from '../types';
-import { GameStatus } from '../types';
+import { GamePhase, GameStatus } from '../types';
 import { weightedRandom } from '../utils';
 
 import type { Player } from './Player';
@@ -23,6 +26,8 @@ import { UserSchema } from './User';
 export class Game extends Schema {
   ownerSessionId: string;
   status: GameStatus;
+  stage: number;
+  phase: GamePhase;
   players: Map<string, Player> | MapSchema<PlayerSchema>;
   shopChampionPool: Map<string, number> | MapSchema<number>;
 }
@@ -34,6 +39,12 @@ export class GameSchema extends Game {
   @type('string')
   status: GameStatus;
 
+  @type('number')
+  stage: number;
+
+  @type('string')
+  phase: GamePhase;
+
   @type({ map: PlayerSchema })
   players: MapSchema<PlayerSchema>;
 
@@ -43,10 +54,24 @@ export class GameSchema extends Game {
   @type({ map: 'number' })
   shopChampionPool: MapSchema<number>;
 
+  protected clock: Clock;
+
+  constructor(options: { clock: Clock }) {
+    super({
+      status: GameStatus.InLobby,
+      stage: 0,
+      phase: GamePhase.Preparation,
+      players: {},
+      shopChampionPool: CHAMPIONS_POOL,
+    });
+    this.clock = options?.clock;
+  }
+
   createPlayer(user: User, options: SchemaOptions<Player> = {}) {
     const player = new PlayerSchema({
-      gold: 300,
+      gold: 0,
       experience: 0,
+      health: 100,
       shopChampionNames: times(SHOP_SIZE, () => ''),
       bench: new UnitsGridSchema({
         height: 1,
@@ -83,11 +108,13 @@ export class GameSchema extends Game {
     if (player?.sessionId !== this.ownerSessionId) return;
     this.players.forEach((player) => this.rerollShop(player.sessionId));
     this.status = GameStatus.InProgress;
+    this.gameLoop();
     return true;
   }
 
   buyExperience(sessionId: string) {
     if (this.status !== GameStatus.InProgress) return;
+    if (this.phase !== GamePhase.Reroll) return;
     const player = this.players.get(sessionId);
     if (!player) return;
     if (!player.isEnoughGoldToBuyExperience) return;
@@ -98,6 +125,7 @@ export class GameSchema extends Game {
 
   buyChampion(sessionId: string, index: number) {
     if (this.status !== GameStatus.InProgress) return;
+    if (this.phase !== GamePhase.Reroll) return;
     const player = this.players.get(sessionId);
     if (!player) return;
     const championName = player.shopChampionNames[index];
@@ -155,6 +183,7 @@ export class GameSchema extends Game {
 
   sellUnit(sessionId: string, { coords, gridType }: UnitContext) {
     if (this.status !== GameStatus.InProgress) return;
+    if (this.phase !== GamePhase.Reroll) return;
     const player = this.players.get(sessionId);
     if (!player) return;
     const unit = player[gridType]?.getUnit(coords);
@@ -166,6 +195,7 @@ export class GameSchema extends Game {
 
   moveUnit(sessionId: string, source: UnitContext, dest: UnitContext) {
     if (this.status !== GameStatus.InProgress) return;
+    if (this.phase !== GamePhase.Reroll) return;
     const player = this.players.get(sessionId);
     if (!player?.canMoveUnit(source, dest)) return;
 
@@ -186,6 +216,7 @@ export class GameSchema extends Game {
 
   reroll(sessionId: string) {
     if (this.status !== GameStatus.InProgress) return;
+    if (this.phase !== GamePhase.Reroll) return;
     const player = this.players.get(sessionId);
     if (!player?.isEnoughGoldToReroll) return;
 
@@ -195,6 +226,62 @@ export class GameSchema extends Game {
     });
     this.rerollShop(sessionId);
     player.gold -= GOLD_PER_REROLL;
+  }
+
+  protected gameLoop() {
+    switch (this.phase) {
+      case GamePhase.Preparation: {
+        this.players.forEach((player) => {
+          player.gold += 50;
+        });
+        this.clock.setTimeout(() => {
+          this.phase = GamePhase.Reroll;
+          this.gameLoop();
+        }, TIME_PER_PHASE[GamePhase.Preparation]);
+        return;
+      }
+
+      case GamePhase.Reroll: {
+        this.clock.setTimeout(() => {
+          this.phase = GamePhase.Combat;
+          this.gameLoop();
+        }, TIME_PER_PHASE[GamePhase.Reroll]);
+        return;
+      }
+
+      case GamePhase.Combat: {
+        this.players.forEach((player) => {
+          // TODO: combat logic
+          player.health -= 10;
+        });
+
+        this.clock.setTimeout(() => {
+          this.phase = GamePhase.Elimination;
+          this.gameLoop();
+        }, TIME_PER_PHASE[GamePhase.Combat]);
+        return;
+      }
+
+      case GamePhase.Elimination: {
+        this.players.forEach((player) => {
+          if (player.health <= 0) {
+            this.removePlayer(player.sessionId);
+          }
+        });
+
+        if (this.players.size <= 1) {
+          this.status = GameStatus.Finished;
+          return;
+        }
+
+        this.clock.setTimeout(() => {
+          this.stage++;
+          this.phase = GamePhase.Preparation;
+          this.gameLoop();
+        }, TIME_PER_PHASE[GamePhase.Elimination]);
+        return;
+      }
+    }
   }
 
   protected addToChampionPool(name: string, amount: number) {

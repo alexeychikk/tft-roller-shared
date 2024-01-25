@@ -1,5 +1,5 @@
 import type { Schema } from '@colyseus/schema';
-import type { NonFunctionKeys, PickByValue } from 'utility-types';
+import type { NonFunctionKeys } from 'utility-types';
 
 export interface GenericClient<UserData = any, AuthData = any> {
   readyState: number;
@@ -33,7 +33,7 @@ export enum ErrorCode {
 }
 
 export type SchemaOptions<T extends Schema> = Partial<
-  PickByValue<T, NonFunctionKeys<T>>
+  Pick<T, NonFunctionKeys<T>>
 >;
 
 export interface RoomListingData<Metadata = any> {
