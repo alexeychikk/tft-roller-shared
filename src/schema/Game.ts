@@ -95,8 +95,6 @@ export class GameSchema extends Game {
     if (!player) return;
     player.table.units.forEach((unit) => this.addToChampionPool(unit.name, 1));
     player.bench.units.forEach((unit) => this.addToChampionPool(unit.name, 1));
-    player.table.clear();
-    player.bench.clear();
     this.players.delete(sessionId);
   }
 
