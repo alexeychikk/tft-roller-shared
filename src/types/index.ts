@@ -5,3 +5,4 @@ export * from './comps';
 export * from './game';
 export * from './rooms';
 export * from './traits';
+export * from './utils';

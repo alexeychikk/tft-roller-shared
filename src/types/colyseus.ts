@@ -1,5 +1,4 @@
-import type { Schema } from '@colyseus/schema';
-import type { NonFunctionKeys } from 'utility-types';
+import type { ArraySchema, MapSchema, Schema } from '@colyseus/schema';
 
 export interface GenericClient<UserData = any, AuthData = any> {
   readyState: number;
@@ -32,10 +31,6 @@ export enum ErrorCode {
   InternalServerError = 500,
 }
 
-export type SchemaOptions<T extends Schema> = Partial<
-  Pick<T, NonFunctionKeys<T>>
->;
-
 export interface RoomListingData<Metadata = any> {
   clients: number;
   locked: boolean;
@@ -48,3 +43,26 @@ export interface RoomListingData<Metadata = any> {
   roomId: string;
   unlisted: boolean;
 }
+
+// I know, I know, but what else can I do, it's in my nature :)
+export type SchemaOf<T> =
+  T extends Map<string, infer MV>
+    ? MapSchema<SchemaOf<MV>, string>
+    : T extends Array<infer AV>
+      ? ArraySchema<SchemaOf<AV>>
+      : T extends (...args: any[]) => any
+        ? T
+        : T extends Record<string, any>
+          ? Schema & { [RK in keyof Omit<T, keyof Schema>]: SchemaOf<T[RK]> }
+          : T;
+
+export type SchemaLike<T> =
+  T extends Map<string, infer MV>
+    ? MapSchema<SchemaLike<MV>, string> | Record<string, SchemaLike<MV>>
+    : T extends Array<infer AV>
+      ? ArraySchema<SchemaLike<AV>> | SchemaLike<AV>[]
+      : T;
+
+export type SchemaConstructorParams<T> = {
+  [RK in keyof Omit<T, keyof Schema>]?: SchemaLike<T[RK]>;
+};

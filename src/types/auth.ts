@@ -1,9 +1,5 @@
-import type { GenericClient } from './colyseus';
+import type { User } from '../entities/User';
 
-export type User = {
-  nickname: string;
-  id: string;
-  isAdmin?: boolean;
-};
+import type { GenericClient } from './colyseus';
 
 export type AuthClient = GenericClient<any, User>;

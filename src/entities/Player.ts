@@ -1,6 +1,3 @@
-import type { ArraySchema } from '@colyseus/schema';
-import { Schema, filter, type } from '@colyseus/schema';
-
 import {
   GOLD_PER_EXPERIENCE_BUY,
   GOLD_PER_REROLL,
@@ -9,21 +6,25 @@ import {
   MIN_LEVEL,
   REROLL_CHANCES,
 } from '../constants';
-import type { GenericClient, User } from '../types';
+import type { PartialFields } from '../types';
 
 import type { UnitContext, UnitsGrid } from './UnitsGrid';
-import { GridType, UnitsGridSchema } from './UnitsGrid';
-import { UserSchema } from './User';
+import { GridType } from './UnitsGrid';
+import type { User } from './User';
 
-export class Player extends Schema {
+export class Player {
   user: User;
   sessionId: string;
   gold: number;
   experience: number;
   health: number;
-  shopChampionNames: string[] | ArraySchema<string>;
+  shopChampionNames: string[];
   bench: UnitsGrid;
   table: UnitsGrid;
+
+  constructor(options: PartialFields<Player> = {}) {
+    Object.assign(this, options);
+  }
 
   get isEnoughGoldToBuyExperience() {
     return this.gold >= GOLD_PER_EXPERIENCE_BUY;
@@ -81,21 +82,4 @@ export class Player extends Schema {
 
     return true;
   }
-}
-
-export class PlayerSchema extends Player {
-  @type(UserSchema) user: UserSchema;
-  @type('string') sessionId: string;
-  @type('number') gold: number;
-  @type('number') experience: number;
-  @type('number') health: number;
-
-  @filter(function (this: PlayerSchema, client: GenericClient) {
-    return this.sessionId === client.sessionId;
-  })
-  @type(['string'])
-  shopChampionNames: ArraySchema<string>;
-
-  @type(UnitsGridSchema) bench: UnitsGridSchema;
-  @type(UnitsGridSchema) table: UnitsGridSchema;
 }

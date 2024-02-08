@@ -1,8 +1,6 @@
-import type { MapSchema } from '@colyseus/schema';
-import { Schema, type } from '@colyseus/schema';
+import type { PartialFields } from '../types';
 
 import type { Unit } from './Unit';
-import { UnitSchema } from './Unit';
 
 export type Coords = { x: number; y: number };
 
@@ -13,14 +11,18 @@ export enum GridType {
 
 export type UnitContext = { gridType: GridType; coords: Coords };
 
-export class UnitsGrid extends Schema {
+export class UnitsGrid {
   readonly width: number;
   readonly height: number;
 
   /**
    * 1D representation of the grid as map
    */
-  readonly slots: Map<string, Unit> | MapSchema<UnitSchema>;
+  readonly slots: Map<string, Unit>;
+
+  constructor(options: PartialFields<UnitsGrid> = {}) {
+    Object.assign(this, options);
+  }
 
   get size(): number {
     return (this.width * this.height) | 0;
@@ -71,52 +73,5 @@ export class UnitsGrid extends Schema {
     }
 
     return coords;
-  }
-}
-
-export class UnitsGridSchema extends UnitsGrid {
-  @type('number') readonly width: number;
-  @type('number') readonly height: number;
-  @type({ map: UnitSchema }) slots: MapSchema<UnitSchema>;
-
-  setUnit(coords: Coords, unit: UnitSchema | undefined): UnitsGridSchema {
-    if (!unit) {
-      this.slots.delete(`${(coords.x + this.width * coords.y) | 0}`);
-    } else {
-      this.slots.set(`${(coords.x + this.width * coords.y) | 0}`, unit);
-    }
-    return this;
-  }
-
-  moveUnit(from: Coords, to: Coords): UnitsGridSchema {
-    const fromUnit = this.getUnit(from);
-    if (!fromUnit) return this;
-
-    const toUnit = this.getUnit(to);
-    this.setUnit(to, fromUnit);
-    this.setUnit(from, toUnit);
-    return this;
-  }
-
-  upgradeUnit(coords: Coords): UnitsGridSchema {
-    const unit = this.getUnit(coords);
-    if (!unit) {
-      throw new Error(`Unit at coords ${coords.x},${coords.y} does not exist!`);
-    }
-    unit.stars++;
-    return this;
-  }
-
-  removeUnits(coords: Coords[]): UnitsGridSchema {
-    for (const coord of coords) {
-      this.setUnit(coord, undefined);
-    }
-    return this;
-  }
-
-  clear() {
-    for (let i = 0; i < this.size; i++) {
-      this.slots.delete(`${i}`);
-    }
   }
 }
